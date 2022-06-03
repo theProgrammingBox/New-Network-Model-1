@@ -13,5 +13,6 @@
 using namespace std;
 
 class NetworkParameters;
+class Network;
 
 bool ErrorCheckIntInput(int& input, int min, int max);
