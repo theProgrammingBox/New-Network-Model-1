@@ -24,12 +24,18 @@
     <ClInclude Include="dirent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ErrorCheckIntInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkParameters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

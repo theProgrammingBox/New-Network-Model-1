@@ -129,10 +129,12 @@
   <ItemGroup>
     <ClInclude Include="dirent.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="Network.h" />
     <ClInclude Include="NetworkParameters.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ErrorCheckIntInput.cpp" />
+    <ClCompile Include="NetworkParameters.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
