@@ -131,6 +131,7 @@
     <ClInclude Include="Header.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="NetworkParameters.h" />
+    <ClInclude Include="Randoms.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ErrorCheckIntInput.cpp" />
