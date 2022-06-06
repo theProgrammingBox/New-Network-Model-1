@@ -65,7 +65,7 @@ NetworkParameters::NetworkParameters(uint64_t totalNodes1D, uint64_t convRadius,
 	outputWeights = new float[TOTAL_NODES_4D * TOTAL_OUTPUTS];
 	outputBias = new float[TOTAL_OUTPUTS];
 
-	assert(state != nullptr);
+	assert(initalState != nullptr);
 	assert(stateBias1 != nullptr);
 	assert(inputWeights1 != nullptr);
 	assert(stateWeights1 != nullptr);
@@ -186,10 +186,10 @@ void NetworkParameters::Export()
 	string path = ".\\Program Logs\\" + string(buffer) + ".txt";
 	file.open(path);
 
-	file << "TOTAL_NODES_1D: " << TOTAL_NODES_1D << endl;
-	file << "CONV_RADIUS: " << CONV_RADIUS << endl;
-	file << "TOTAL_INPUTS: " << TOTAL_INPUTS << endl;
-	file << "TOTAL_OUTPUTS: " << TOTAL_OUTPUTS << endl;
+	file << "TOTAL_NODES_1D: " << TOTAL_NODES_1D << "\n\n";
+	file << "CONV_RADIUS: " << CONV_RADIUS << "\n\n";
+	file << "TOTAL_INPUTS: " << TOTAL_INPUTS << "\n\n";
+	file << "TOTAL_OUTPUTS: " << TOTAL_OUTPUTS << "\n\n";
 
 	file << "initalState:" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
@@ -382,7 +382,6 @@ void NetworkParameters::Export()
 	}
 
 	file << "outputWeights:" << endl;
-
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
 		for (j = 0; j < TOTAL_NODES_1D; j++)
@@ -503,26 +502,6 @@ void NetworkParameters::Import()
 		assert(label == "TOTAL_OUTPUTS:");
 		assert(value == TOTAL_OUTPUTS);
 
-		/*file << "initalState:" << endl;
-		for (i = 0; i < TOTAL_NODES_1D; i++)
-		{
-			for (j = 0; j < TOTAL_NODES_1D; j++)
-			{
-				y = i + j * TOTAL_NODES_1D;
-				for (k = 0; k < TOTAL_NODES_1D; k++)
-				{
-					z = y + k * TOTAL_NODES_2D;
-					for (l = 0; l < TOTAL_NODES_1D; l++)
-					{
-						file << initalState[z + l * TOTAL_NODES_3D] << " ";
-					}
-					file << std::endl;
-				}
-				file << std::endl;
-			}
-			file << std::endl;
-		}*/
-
 		file >> label;
 		assert(label == "initalState:");
 		for (i = 0; i < TOTAL_NODES_1D; i++)
@@ -540,209 +519,182 @@ void NetworkParameters::Import()
 				}
 			}
 		}
+
+		file >> label;
+		assert(label == "stateBias1:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						file >> stateBias1[z + l * TOTAL_NODES_3D];
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "stateBias2:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						file >> stateBias2[z + l * TOTAL_NODES_3D];
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "inputWeights1:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						w = z + l * TOTAL_NODES_3D;
+						for (ci = 0; ci < TOTAL_INPUTS; ci++)
+						{
+							file >> inputWeights1[w + ci * TOTAL_NODES_4D];
+						}
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "inputWeights2:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						w = z + l * TOTAL_NODES_3D;
+						for (ci = 0; ci < TOTAL_INPUTS; ci++)
+						{
+							file >> inputWeights2[w + ci * TOTAL_NODES_4D];
+						}
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "stateWeights1:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						w = z + l * TOTAL_NODES_3D;
+						for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
+						{
+							wx = w + ci * TOTAL_NODES_4D;
+							for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
+							{
+								wy = wx + cj * TOTAL_NODES_5D;
+								for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
+								{
+									wz = wy + ck * TOTAL_NODES_6D;
+									for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
+									{
+										file >> stateWeights1[wz + cl * TOTAL_NODES_7D];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "stateWeights2:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						w = z + l * TOTAL_NODES_3D;
+						for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
+						{
+							wx = w + ci * TOTAL_NODES_4D;
+							for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
+							{
+								wy = wx + cj * TOTAL_NODES_5D;
+								for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
+								{
+									wz = wy + ck * TOTAL_NODES_6D;
+									for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
+									{
+										file >> stateWeights2[wz + cl * TOTAL_NODES_7D];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "outputWeights:");
+		for (i = 0; i < TOTAL_NODES_1D; i++)
+		{
+			for (j = 0; j < TOTAL_NODES_1D; j++)
+			{
+				y = i + j * TOTAL_NODES_1D;
+				for (k = 0; k < TOTAL_NODES_1D; k++)
+				{
+					z = y + k * TOTAL_NODES_2D;
+					for (l = 0; l < TOTAL_NODES_1D; l++)
+					{
+						w = z + l * TOTAL_NODES_3D;
+						for (ci = 0; ci < TOTAL_OUTPUTS; ci++)
+						{
+							file >> outputWeights[w + ci * TOTAL_NODES_4D];
+						}
+					}
+				}
+			}
+		}
+
+		file >> label;
+		assert(label == "outputBias:");
+		for (i = 0; i < TOTAL_OUTPUTS; i++)
+		{
+			file >> outputBias[i];
+		}
 	}
 }
-
-/*
-
-	file << "stateBias1:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					file << stateBias1[z + l * TOTAL_NODES_3D] << " ";
-				}
-				file << std::endl;
-			}
-			file << std::endl;
-		}
-		file << std::endl;
-	}
-
-	file << "stateBias2:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					file << stateBias2[z + l * TOTAL_NODES_3D] << " ";
-				}
-				file << std::endl;
-			}
-			file << std::endl;
-		}
-		file << std::endl;
-	}
-
-	file << "inputWeights1:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					w = z + l * TOTAL_NODES_3D;
-					for (ci = 0; ci < TOTAL_INPUTS; ci++)
-					{
-						file << inputWeights1[w + ci * TOTAL_NODES_4D] << " ";
-					}
-					file << std::endl;
-				}
-				file << std::endl;
-			}
-			file << std::endl;
-		}
-		file << std::endl;
-	}
-
-	file << "inputWeights2:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					w = z + l * TOTAL_NODES_3D;
-					for (ci = 0; ci < TOTAL_INPUTS; ci++)
-					{
-						file << inputWeights2[w + ci * TOTAL_NODES_4D] << " ";
-					}
-					file << std::endl;
-				}
-				file << std::endl;
-			}
-			file << std::endl;
-		}
-		file << std::endl;
-	}
-
-	file << "stateWeights1:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					w = z + l * TOTAL_NODES_3D;
-					for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
-					{
-						wx = w + ci * TOTAL_NODES_4D;
-						for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
-						{
-							wy = wx + cj * TOTAL_NODES_5D;
-							for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
-							{
-								wz = wy + ck * TOTAL_NODES_6D;
-								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
-								{
-									file << stateWeights1[wz + cl * TOTAL_NODES_7D] << " ";
-								}
-								file << endl;
-							}
-							file << endl;
-						}
-						file << endl;
-					}
-					file << endl;
-				}
-				file << endl;
-			}
-			file << endl;
-		}
-		file << endl;
-	}
-
-	file << "stateWeights2:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					w = z + l * TOTAL_NODES_3D;
-					for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
-					{
-						wx = w + ci * TOTAL_NODES_4D;
-						for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
-						{
-							wy = wx + cj * TOTAL_NODES_5D;
-							for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
-							{
-								wz = wy + ck * TOTAL_NODES_6D;
-								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
-								{
-									file << stateWeights2[wz + cl * TOTAL_NODES_7D] << " ";
-								}
-								file << endl;
-							}
-							file << endl;
-						}
-						file << endl;
-					}
-					file << endl;
-				}
-				file << endl;
-			}
-			file << endl;
-		}
-		file << endl;
-	}
-
-	file << "outputWeights:" << endl;
-
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			y = i + j * TOTAL_NODES_1D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				z = y + k * TOTAL_NODES_2D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					w = z + l * TOTAL_NODES_3D;
-					for (ci = 0; ci < TOTAL_OUTPUTS; ci++)
-					{
-						file << outputWeights[w + ci * TOTAL_NODES_4D] << " ";
-					}
-					file << endl;
-				}
-				file << std::endl;
-			}
-			file << std::endl;
-		}
-		file << std::endl;
-	}
-
-	file << "outputBias:" << endl;
-	for (i = 0; i < TOTAL_OUTPUTS; i++)
-	{
-		file << outputBias[i] << " ";
-	}*/
