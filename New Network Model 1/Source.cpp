@@ -192,7 +192,7 @@ int main()
 	}
 	cout << endl;
 
-	/*cout << "weights matrix" << endl;
+	cout << "weights matrix" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
 		for (j = 0; j < TOTAL_NODES_1D; j++)
@@ -231,7 +231,7 @@ int main()
 		}
 		cout << endl;
 	}
-	cout << endl;*/
+	cout << endl;
 
 	delete[] state;
 	delete[] futureState;
