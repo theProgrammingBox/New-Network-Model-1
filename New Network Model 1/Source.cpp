@@ -19,9 +19,8 @@ int main()
 	float* bias = nullptr;
 	float* weights = nullptr;
 
-	uint32_t i, j, k, l, ci, cj, ck, cl;
-	int64_t x, y, z, w, cx, cy, cz, cw;
-	int64_t indexi, indexj, indexk, indexl;
+	uint64_t i, j, k, l, ci, cj, ck, cl;
+	int64_t y, z, w, cx, cy, cz, px, py, pz, pw;
 	Random random;
 
 	state = new float[TOTAL_NODES_4D];
@@ -31,10 +30,9 @@ int main()
 
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		x = i;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			y = x + j * TOTAL_NODES_1D;
+			y = i + j * TOTAL_NODES_1D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
 				z = y + k * TOTAL_NODES_2D;
@@ -55,8 +53,7 @@ int main()
 								cz = cy + ck * TOTAL_NODES_6D;
 								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
 								{
-									cw = cz + cl * TOTAL_NODES_7D;
-									weights[cw] = ci == CONV_RADIUS && cj == CONV_RADIUS && ck == CONV_RADIUS && cl == CONV_RADIUS;
+									weights[cz + cl * TOTAL_NODES_7D] = ci == CONV_RADIUS && cj == CONV_RADIUS && ck == CONV_RADIUS && cl == CONV_RADIUS;
 								}
 							}
 						}
@@ -68,10 +65,9 @@ int main()
 
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		x = i;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			y = x + j * TOTAL_NODES_1D;
+			y = i + j * TOTAL_NODES_1D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
 				z = y + k * TOTAL_NODES_2D;
@@ -82,36 +78,27 @@ int main()
 					for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
 					{
 						cx = w + ci * TOTAL_NODES_4D;
-						indexi = i + ci - CONV_RADIUS;
-						indexi = indecx < 0 ? indecx + TOTAL_NODES_1D : indecx >= TOTAL_NODES_1D ? indecx - TOTAL_NODES_1D : indecx;
+						px = i + ci - CONV_RADIUS;
+						px = px < 0 ? px + TOTAL_NODES_1D : px >= TOTAL_NODES_1D ? px - TOTAL_NODES_1D : px;
 						for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
 						{
 							cy = cx + cj * TOTAL_NODES_5D;
-							indexj = j + cj - CONV_RADIUS;
-							indexj = indexj < 0 ? indexj + TOTAL_NODES_1D : indexj >= TOTAL_NODES_1D ? indexj - TOTAL_NODES_1D : indexj;
+							py = px + (j + cj - CONV_RADIUS) * TOTAL_NODES_1D;
+							py = py < 0 ? py + TOTAL_NODES_2D : py >= TOTAL_NODES_2D ? py - TOTAL_NODES_2D : py;
 							for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
 							{
 								cz = cy + ck * TOTAL_NODES_6D;
-								indexk = k + ck - CONV_RADIUS;
-								indexk = indexk < 0 ? indexk + TOTAL_NODES_1D : indexk >= TOTAL_NODES_1D ? indexk - TOTAL_NODES_1D : indexk;
+								pz = py + (k + ck - CONV_RADIUS) * TOTAL_NODES_2D;
+								pz = pz < 0 ? pz + TOTAL_NODES_3D : pz >= TOTAL_NODES_3D ? pz - TOTAL_NODES_3D : pz;
 								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
 								{
-									cw = cz + cl * TOTAL_NODES_7D;
-									indexl = l + cl - CONV_RADIUS;
-									indexl = indexl < 0 ? indexl + TOTAL_NODES_1D : indexl >= TOTAL_NODES_1D ? indexl - TOTAL_NODES_1D : indexl;
-									futureState[w] += state[indecx + indexj * TOTAL_NODES_1D + indexk * TOTAL_NODES_2D + indexl * TOTAL_NODES_3D] * weights[cw];
-									if (i == 0 && j == 0 && k == 0 && l == 0)
-									{
-										cout << "state[" << indexi << "][" << indexj << "][" << indexk << "][" << indexl << "] = " << state[indexi + indexj * TOTAL_NODES_1D + indexk * TOTAL_NODES_2D + indexl * TOTAL_NODES_3D] << endl;
-										cout << "weights[" << i << "][" << j << "][" << k << "][" << l << "][" << ci << "][" << cj << "][" << ck << "][" << cl << "] = " << weights[cw] << endl;
-									}
+									pw = pz + (l + cl - CONV_RADIUS) * TOTAL_NODES_3D;
+									pw = pw < 0 ? pw + TOTAL_NODES_4D : pw >= TOTAL_NODES_4D ? pw - TOTAL_NODES_4D : pw;
+
+									futureState[w] += state[pw] * weights[cz + cl * TOTAL_NODES_7D];
 								}
 							}
 						}
-					}
-					if (i == 0 && j == 0 && k == 0 && l == 0)
-					{
-						cout << "futureState[" << i << "][" << j << "][" << k << "][" << l << "] = " << futureState[w] << endl;
 					}
 				}
 			}
@@ -121,17 +108,15 @@ int main()
 	cout << "state matrix" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		x = i;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			y = x + j * TOTAL_NODES_1D;
+			y = i + j * TOTAL_NODES_1D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
 				z = y + k * TOTAL_NODES_2D;
 				for (l = 0; l < TOTAL_NODES_1D; l++)
 				{
-					w = z + l * TOTAL_NODES_3D;
-					cout << state[w] << " ";
+					cout << state[z + l * TOTAL_NODES_3D] << " ";
 				}
 				cout << endl;
 			}
@@ -144,17 +129,15 @@ int main()
 	cout << "future state matrix" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		x = i;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			y = x + j * TOTAL_NODES_1D;
+			y = i + j * TOTAL_NODES_1D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
 				z = y + k * TOTAL_NODES_2D;
 				for (l = 0; l < TOTAL_NODES_1D; l++)
 				{
-					w = z + l * TOTAL_NODES_3D;
-					cout << futureState[w] << " ";
+					cout << futureState[z + l * TOTAL_NODES_3D] << " ";
 				}
 				cout << endl;
 			}
@@ -167,17 +150,15 @@ int main()
 	cout << "bias matrix" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		x = i;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			y = x + j * TOTAL_NODES_1D;
+			y = i + j * TOTAL_NODES_1D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
 				z = y + k * TOTAL_NODES_2D;
 				for (l = 0; l < TOTAL_NODES_1D; l++)
 				{
-					w = z + l * TOTAL_NODES_3D;
-					cout << bias[w] << " ";
+					cout << bias[z + l * TOTAL_NODES_3D] << " ";
 				}
 				cout << endl;
 			}
@@ -190,10 +171,9 @@ int main()
 	cout << "weights matrix" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		x = i;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			y = x + j * TOTAL_NODES_1D;
+			y = i + j * TOTAL_NODES_1D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
 				z = y + k * TOTAL_NODES_2D;
@@ -211,8 +191,7 @@ int main()
 								cz = cy + ck * TOTAL_NODES_6D;
 								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
 								{
-									cw = cz + cl * TOTAL_NODES_7D;
-									cout << weights[cw] << " ";
+									cout << weights[cz + cl * TOTAL_NODES_7D] << " ";
 								}
 								cout << endl;
 							}
@@ -229,6 +208,11 @@ int main()
 		cout << endl;
 	}
 	cout << endl;
+
+	delete[] state;
+	delete[] futureState;
+	delete[] bias;
+	delete[] weights;
 
 	return 0;
 }
