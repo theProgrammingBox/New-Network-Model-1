@@ -2,17 +2,25 @@
 
 int main()
 {
-	const int64_t TOTAL_NODES_1D = 3;
-	const int64_t CONV_RADIUS = 1;
+	const uint64_t TOTAL_NODES_1D = 3;
+	const uint64_t CONV_RADIUS = 1;
+	const uint64_t TOTAL_WEIGHTS_1D = 2 * CONV_RADIUS + 1;
+	assert(TOTAL_NODES_1D >= TOTAL_WEIGHTS_1D);
+	/*having TOTAL_WEIGHTS_1D > TOTAL_NODES_1D will result in
+	convolution to overlap resulting in redundant computation.
+	However, not checking for this may result in different
+	good and bad "features"*/
 
-	const int64_t TOTAL_NODES_2D = TOTAL_NODES_1D * TOTAL_NODES_1D;
-	const int64_t TOTAL_NODES_3D = TOTAL_NODES_2D * TOTAL_NODES_1D;
-	const int64_t TOTAL_NODES_4D = TOTAL_NODES_3D * TOTAL_NODES_1D;
-	const int64_t TOTAL_WEIGHTS_1D = 2 * CONV_RADIUS + 1;
-	const int64_t TOTAL_NODES_5D = TOTAL_NODES_4D * TOTAL_WEIGHTS_1D;
-	const int64_t TOTAL_NODES_6D = TOTAL_NODES_5D * TOTAL_WEIGHTS_1D;
-	const int64_t TOTAL_NODES_7D = TOTAL_NODES_6D * TOTAL_WEIGHTS_1D;
-	const int64_t TOTAL_NODES_8D = TOTAL_NODES_7D * TOTAL_WEIGHTS_1D;
+	const uint64_t TOTAL_NODES_2D = TOTAL_NODES_1D * TOTAL_NODES_1D;
+	const uint64_t TOTAL_NODES_3D = TOTAL_NODES_2D * TOTAL_NODES_1D;
+	const uint64_t TOTAL_NODES_4D = TOTAL_NODES_3D * TOTAL_NODES_1D;
+	const uint64_t TOTAL_NODES_5D = TOTAL_NODES_4D * TOTAL_WEIGHTS_1D;
+	const uint64_t TOTAL_NODES_6D = TOTAL_NODES_5D * TOTAL_WEIGHTS_1D;
+	const uint64_t TOTAL_NODES_7D = TOTAL_NODES_6D * TOTAL_WEIGHTS_1D;
+	const uint64_t TOTAL_NODES_8D = TOTAL_NODES_7D * TOTAL_WEIGHTS_1D;
+	assert(TOTAL_NODES_8D <= UINT32_MAX);
+	/*don't want to overflow the uint32_t index cuz it will cause
+	weird bugs when computing the future state*/
 
 	float* state = nullptr;
 	float* futureState = nullptr;
@@ -20,13 +28,18 @@ int main()
 	float* weights = nullptr;
 
 	uint64_t i, j, k, l, ci, cj, ck, cl;
-	int64_t y, z, w, cx, cy, cz, px, py, pz, pw;
+	int64_t y, z, w, wx, wy, wz, cx, cy, cz, cw;
 	Random random;
 
 	state = new float[TOTAL_NODES_4D];
 	futureState = new float[TOTAL_NODES_4D];
 	bias = new float[TOTAL_NODES_4D];
 	weights = new float[TOTAL_NODES_8D];
+	assert(state != nullptr);
+	assert(futureState != nullptr);
+	assert(bias != nullptr);
+	assert(weights != nullptr);
+	/*allocate memory for the state, future state, bias, and weights*/
 
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
@@ -39,21 +52,28 @@ int main()
 				for (l = 0; l < TOTAL_NODES_1D; l++)
 				{
 					w = z + l * TOTAL_NODES_3D;
-
-					state[w] = random.DoubleRandom();
-					bias[w] = 0;
+					state[w] = random.NormalRandom(0, 0.5);
+					bias[w] = random.NormalRandom(0, 0.01);
 					for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
 					{
-						cx = w + ci * TOTAL_NODES_4D;
+						wx = w + ci * TOTAL_NODES_4D;
 						for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
 						{
-							cy = cx + cj * TOTAL_NODES_5D;
+							wy = wx + cj * TOTAL_NODES_5D;
 							for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
 							{
-								cz = cy + ck * TOTAL_NODES_6D;
+								wz = wy + ck * TOTAL_NODES_6D;
 								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
 								{
-									weights[cz + cl * TOTAL_NODES_7D] = ci == CONV_RADIUS && cj == CONV_RADIUS && ck == CONV_RADIUS && cl == CONV_RADIUS;
+									weights[wz + cl * TOTAL_NODES_7D] =
+										float(
+											ci == CONV_RADIUS &&
+											cj == CONV_RADIUS &&
+											ck == CONV_RADIUS &&
+											cl == CONV_RADIUS
+											)
+										+ random.NormalRandom(0, 0.01);
+									/*identity matrix with a small amount of noise*/
 								}
 							}
 						}
@@ -77,25 +97,29 @@ int main()
 					futureState[w] = bias[w];
 					for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
 					{
-						cx = w + ci * TOTAL_NODES_4D;
-						px = i + ci - CONV_RADIUS;
-						px = px < 0 ? px + TOTAL_NODES_1D : px >= TOTAL_NODES_1D ? px - TOTAL_NODES_1D : px;
+						wx = w + ci * TOTAL_NODES_4D;
+						cx = i + ci - CONV_RADIUS;
+						cx = cx < 0 ? cx + TOTAL_NODES_1D :
+							cx >= TOTAL_NODES_1D ? cx - TOTAL_NODES_1D : cx;
+						/*wrap around the edges of that dimention if at edge*/
 						for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
 						{
-							cy = cx + cj * TOTAL_NODES_5D;
-							py = px + (j + cj - CONV_RADIUS) * TOTAL_NODES_1D;
-							py = py < 0 ? py + TOTAL_NODES_2D : py >= TOTAL_NODES_2D ? py - TOTAL_NODES_2D : py;
+							wy = wx + cj * TOTAL_NODES_5D;
+							cy = cx + (j + cj - CONV_RADIUS) * TOTAL_NODES_1D;
+							cy = cy < 0 ? cy + TOTAL_NODES_2D :
+								cy >= TOTAL_NODES_2D ? cy - TOTAL_NODES_2D : cy;
 							for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
 							{
-								cz = cy + ck * TOTAL_NODES_6D;
-								pz = py + (k + ck - CONV_RADIUS) * TOTAL_NODES_2D;
-								pz = pz < 0 ? pz + TOTAL_NODES_3D : pz >= TOTAL_NODES_3D ? pz - TOTAL_NODES_3D : pz;
+								wz = wy + ck * TOTAL_NODES_6D;
+								cz = cy + (k + ck - CONV_RADIUS) * TOTAL_NODES_2D;
+								cz = cz < 0 ? cz + TOTAL_NODES_3D :
+									cz >= TOTAL_NODES_3D ? cz - TOTAL_NODES_3D : cz;
 								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
 								{
-									pw = pz + (l + cl - CONV_RADIUS) * TOTAL_NODES_3D;
-									pw = pw < 0 ? pw + TOTAL_NODES_4D : pw >= TOTAL_NODES_4D ? pw - TOTAL_NODES_4D : pw;
-
-									futureState[w] += state[pw] * weights[cz + cl * TOTAL_NODES_7D];
+									cw = cz + (l + cl - CONV_RADIUS) * TOTAL_NODES_3D;
+									cw = cw < 0 ? cw + TOTAL_NODES_4D :
+										cw >= TOTAL_NODES_4D ? cw - TOTAL_NODES_4D : cw;
+									futureState[w] += state[cw] * weights[wz + cl * TOTAL_NODES_7D];
 								}
 							}
 						}
@@ -168,7 +192,7 @@ int main()
 	}
 	cout << endl;
 
-	cout << "weights matrix" << endl;
+	/*cout << "weights matrix" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
 		for (j = 0; j < TOTAL_NODES_1D; j++)
@@ -182,16 +206,16 @@ int main()
 					w = z + l * TOTAL_NODES_3D;
 					for (ci = 0; ci < TOTAL_WEIGHTS_1D; ci++)
 					{
-						cx = w + ci * TOTAL_NODES_4D;
+						wx = w + ci * TOTAL_NODES_4D;
 						for (cj = 0; cj < TOTAL_WEIGHTS_1D; cj++)
 						{
-							cy = cx + cj * TOTAL_NODES_5D;
+							wy = wx + cj * TOTAL_NODES_5D;
 							for (ck = 0; ck < TOTAL_WEIGHTS_1D; ck++)
 							{
-								cz = cy + ck * TOTAL_NODES_6D;
+								wz = wy + ck * TOTAL_NODES_6D;
 								for (cl = 0; cl < TOTAL_WEIGHTS_1D; cl++)
 								{
-									cout << weights[cz + cl * TOTAL_NODES_7D] << " ";
+									cout << weights[wz + cl * TOTAL_NODES_7D] << " ";
 								}
 								cout << endl;
 							}
@@ -207,7 +231,7 @@ int main()
 		}
 		cout << endl;
 	}
-	cout << endl;
+	cout << endl;*/
 
 	delete[] state;
 	delete[] futureState;
