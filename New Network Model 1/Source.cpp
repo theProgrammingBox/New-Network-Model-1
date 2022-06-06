@@ -2,83 +2,71 @@
 
 int main()
 {
-	const int32_t TOTAL_NODES_1D = 4;
-	const int32_t CONV_RADIUS = 1;
+	const int64_t TOTAL_NODES_1D = 3;
+	const int64_t CONV_RADIUS = 1;
+	const int64_t TOTAL_WEIGHTS_1D = 2 * CONV_RADIUS + 1;
 
-	const int32_t TOTAL_NODES_2D = TOTAL_NODES_1D * TOTAL_NODES_1D;
-	const int32_t TOTAL_NODES_3D = TOTAL_NODES_2D * TOTAL_NODES_1D;
-	const int32_t TOTAL_NODES_4D = TOTAL_NODES_2D * TOTAL_NODES_2D;
-	const int32_t TOTAL_WEIGHTS_1D = CONV_RADIUS * 2 + 1;
-	const int32_t TOTAL_WEIGHTS_2D = TOTAL_WEIGHTS_1D * TOTAL_WEIGHTS_1D;
-	const int32_t TOTAL_WEIGHTS_3D = TOTAL_WEIGHTS_2D * TOTAL_WEIGHTS_1D;
-	const int32_t TOTAL_WEIGHTS_4D = TOTAL_WEIGHTS_2D * TOTAL_WEIGHTS_2D;
+	double**** state = nullptr;
+	double**** bias = nullptr;
+	double******** weights = nullptr;
+	double**** futureState = nullptr;
+
+	int64_t i, j, k, l;
+	int64_t wi, wj, wk, wl;
 	Random random;
 
-	int32_t i, j, k, l;
-	int32_t wi, wj, wk, wl;
-	int32_t indexI, indexJ, indexK, indexL;
-	int32_t wIndexI, wIndexJ, wIndexK, wIndexL;
-	int32_t cIndexI, cIndexJ, cIndexK, cIndexL;
-
-	float* matrix = nullptr;
-	float* bias = nullptr;
-	float* weights = nullptr;
-	float* matrix2 = nullptr;
-
-	matrix = new float[TOTAL_NODES_4D];
-	bias = new float[TOTAL_NODES_4D];
-	weights = new float[TOTAL_NODES_4D * TOTAL_WEIGHTS_4D];
-	matrix2 = new float[TOTAL_NODES_4D];
-
-	for (i = 0; i < TOTAL_NODES_4D; i++)
+	state = new double*** [TOTAL_NODES_1D];
+	bias = new double*** [TOTAL_NODES_1D];
+	futureState = new double*** [TOTAL_NODES_1D];
+	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		matrix[i] = random.DoubleRandom();
-		bias[i] = 0;
-		uint32_t counter = 0;
-		for (j = 0; j < TOTAL_WEIGHTS_4D; j++)
+		state[i] = new double** [TOTAL_NODES_1D];
+		bias[i] = new double** [TOTAL_NODES_1D];
+		futureState[i] = new double** [TOTAL_NODES_1D];
+		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			weights[i * TOTAL_WEIGHTS_4D + j] = counter++ == TOTAL_WEIGHTS_4D / 2;
+			state[i][j] = new double* [TOTAL_NODES_1D];
+			bias[i][j] = new double* [TOTAL_NODES_1D];
+			futureState[i][j] = new double* [TOTAL_NODES_1D];
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				state[i][j][k] = new double[TOTAL_NODES_1D];
+				bias[i][j][k] = new double[TOTAL_NODES_1D];
+				futureState[i][j][k] = new double[TOTAL_NODES_1D];
+				for (l = 0; l < TOTAL_NODES_1D; l++)
+				{
+					state[i][j][k][l] = random.DoubleRandom();
+					bias[i][j][k][l] = 0;
+				}
+			}
 		}
 	}
 
+	weights = new double******* [TOTAL_NODES_1D];
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		indexI = i * TOTAL_NODES_3D;
+		weights[i] = new double****** [TOTAL_NODES_1D];
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			indexJ = indexI + j * TOTAL_NODES_2D;
+			weights[i][j] = new double***** [TOTAL_NODES_1D];
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
-				indexK = indexJ + k * TOTAL_NODES_1D;
+				weights[i][j][k] = new double**** [TOTAL_NODES_1D];
 				for (l = 0; l < TOTAL_NODES_1D; l++)
 				{
-					indexL = indexK + l;
-					matrix2[indexL] = bias[indexL];
+					weights[i][j][k][l] = new double*** [TOTAL_WEIGHTS_1D];
 					for (wi = 0; wi < TOTAL_WEIGHTS_1D; wi++)
 					{
-						wIndexI = indexL * TOTAL_WEIGHTS_4D + wi * TOTAL_WEIGHTS_3D;
-						cIndexI = indexL + (wi - CONV_RADIUS) * TOTAL_NODES_3D;
-						cIndexI = cIndexI < 0 ? cIndexI + TOTAL_NODES_4D : cIndexI >= TOTAL_NODES_4D ? cIndexI - TOTAL_NODES_4D : cIndexI;
+						weights[i][j][k][l][wi] = new double** [TOTAL_WEIGHTS_1D];
 						for (wj = 0; wj < TOTAL_WEIGHTS_1D; wj++)
 						{
-							wIndexJ = wIndexI + wj * TOTAL_WEIGHTS_2D;
-							cIndexJ = cIndexI + (wj - CONV_RADIUS) * TOTAL_NODES_2D;
-							cIndexJ = cIndexJ < 0 ? cIndexJ + TOTAL_NODES_4D : cIndexJ >= TOTAL_NODES_4D ? cIndexJ - TOTAL_NODES_4D : cIndexJ;
+							weights[i][j][k][l][wi][wj] = new double* [TOTAL_WEIGHTS_1D];
 							for (wk = 0; wk < TOTAL_WEIGHTS_1D; wk++)
 							{
-								wIndexK = wIndexJ + wk * TOTAL_WEIGHTS_1D;
-								cIndexK = cIndexJ + (wk - CONV_RADIUS) * TOTAL_NODES_1D;
-								cIndexK = cIndexK < 0 ? cIndexK + TOTAL_NODES_4D : cIndexK >= TOTAL_NODES_4D ? cIndexK - TOTAL_NODES_4D : cIndexK;
+								weights[i][j][k][l][wi][wj][wk] = new double[TOTAL_WEIGHTS_1D];
 								for (wl = 0; wl < TOTAL_WEIGHTS_1D; wl++)
 								{
-									wIndexL = wIndexK + wl;
-									cIndexL = cIndexK + (wl - CONV_RADIUS);
-									cIndexL = cIndexL < 0 ? cIndexL + TOTAL_NODES_4D : cIndexL >= TOTAL_NODES_4D ? cIndexL - TOTAL_NODES_4D : cIndexL;
-									matrix2[indexL] += matrix[cIndexL] * weights[wIndexL];
-									if (i == 0 && j == 1 && k == 0 && l == 1)
-									{
-										cout << "matrix[" << cIndexL << "] = " << matrix[cIndexL] << " * weights[" << wIndexL << "] = " << weights[wIndexL] << " = " << matrix[cIndexL] * weights[wIndexL] << endl;
-									}
+									weights[i][j][k][l][wi][wj][wk][wl] = wi == CONV_RADIUS && wj == CONV_RADIUS && wk == CONV_RADIUS && wl == CONV_RADIUS;
 								}
 							}
 						}
@@ -88,101 +76,125 @@ int main()
 		}
 	}
 
-	cout << "Matrix:" << endl;
 	for (i = 0; i < TOTAL_NODES_1D; i++)
 	{
-		indexI = i * TOTAL_NODES_3D;
 		for (j = 0; j < TOTAL_NODES_1D; j++)
 		{
-			indexJ = indexI + j * TOTAL_NODES_2D;
 			for (k = 0; k < TOTAL_NODES_1D; k++)
 			{
-				indexK = indexJ + k * TOTAL_NODES_1D;
 				for (l = 0; l < TOTAL_NODES_1D; l++)
 				{
-					indexL = indexK + l;
-					cout << matrix[indexL] << " ";
-				}
-				cout << endl;
-			}
-			cout << endl;
-		}
-		cout << endl;
-	}
-	cout << endl;
-
-	cout << "Matrix2:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		indexI = i * TOTAL_NODES_3D;
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			indexJ = indexI + j * TOTAL_NODES_2D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				indexK = indexJ + k * TOTAL_NODES_1D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					indexL = indexK + l;
-					cout << matrix2[indexL] << " ";
-				}
-				cout << endl;
-			}
-			cout << endl;
-		}
-		cout << endl;
-	}
-	cout << endl;
-
-	cout << "Bias:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		indexI = i * TOTAL_NODES_3D;
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			indexJ = indexI + j * TOTAL_NODES_2D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				indexK = indexJ + k * TOTAL_NODES_1D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					indexL = indexK + l;
-					cout << bias[indexL] << " ";
-				}
-				cout << endl;
-			}
-			cout << endl;
-		}
-		cout << endl;
-	}
-	cout << endl;
-
-	/*cout << "Weights:" << endl;
-	for (i = 0; i < TOTAL_NODES_1D; i++)
-	{
-		indexI = i * TOTAL_NODES_3D;
-		for (j = 0; j < TOTAL_NODES_1D; j++)
-		{
-			indexJ = indexI + j * TOTAL_NODES_2D;
-			for (k = 0; k < TOTAL_NODES_1D; k++)
-			{
-				indexK = indexJ + k * TOTAL_NODES_1D;
-				for (l = 0; l < TOTAL_NODES_1D; l++)
-				{
-					indexL = indexK + l;
+					futureState[i][j][k][l] = bias[i][j][k][l];
 					for (wi = 0; wi < TOTAL_WEIGHTS_1D; wi++)
 					{
-						wIndexI = indexL * TOTAL_WEIGHTS_4D + wi * TOTAL_WEIGHTS_3D;
 						for (wj = 0; wj < TOTAL_WEIGHTS_1D; wj++)
 						{
-							wIndexJ = wIndexI + wj * TOTAL_WEIGHTS_2D;
 							for (wk = 0; wk < TOTAL_WEIGHTS_1D; wk++)
 							{
-								wIndexK = wIndexJ + wk * TOTAL_WEIGHTS_1D;
 								for (wl = 0; wl < TOTAL_WEIGHTS_1D; wl++)
 								{
-									wIndexL = wIndexK + wl;
-									cout << weights[wIndexL] << " ";
+									int64_t indexi = i + (wi - CONV_RADIUS);
+									indexi = indexi < 0 ? indexi + TOTAL_NODES_1D : indexi >= TOTAL_NODES_1D ? indexi - TOTAL_NODES_1D : indexi;
+									int64_t indexj = j + (wj - CONV_RADIUS);
+									indexj = indexj < 0 ? indexj + TOTAL_NODES_1D : indexj >= TOTAL_NODES_1D ? indexj - TOTAL_NODES_1D : indexj;
+									int64_t indexk = k + (wk - CONV_RADIUS);
+									indexk = indexk < 0 ? indexk + TOTAL_NODES_1D : indexk >= TOTAL_NODES_1D ? indexk - TOTAL_NODES_1D : indexk;
+									int64_t indexl = l + (wl - CONV_RADIUS);
+									indexl = indexl < 0 ? indexl + TOTAL_NODES_1D : indexl >= TOTAL_NODES_1D ? indexl - TOTAL_NODES_1D : indexl;
+									futureState[i][j][k][l] += state[indexi][indexj][indexk][indexl] * weights[i][j][k][l][wi][wj][wk][wl];
+									/*if (i == 0 && j == 0 && k == 0 && l == 0)
+									{
+										cout << "state[" << indexi << "][" << indexj << "][" << indexk << "][" << indexl << "] = " << state[indexi][indexj][indexk][indexl] << endl;
+										cout << "weights[" << i << "][" << j << "][" << k << "][" << l << "][" << wi << "][" << wj << "][" << wk << "][" << wl << "] = " << weights[i][j][k][l][wi][wj][wk][wl] << endl;
+									}*/
+								}
+							}
+						}
+					}
+					/*if (i == 0 && j == 0 && k == 0 && l == 0)
+					{
+						cout << "futureState[" << i << "][" << j << "][" << k << "][" << l << "] = " << futureState[i][j][k][l] << endl;
+					}*/
+				}
+			}
+		}
+	}/**/
+
+	cout << "state matrix" << endl;
+	for (i = 0; i < TOTAL_NODES_1D; i++)
+	{
+		for (j = 0; j < TOTAL_NODES_1D; j++)
+		{
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				for (l = 0; l < TOTAL_NODES_1D; l++)
+				{
+					cout << state[i][j][k][l] << " ";
+				}
+				cout << endl;
+			}
+			cout << endl;
+		}
+		cout << endl;
+	}
+	cout << endl;
+
+	cout << "future state matrix" << endl;
+	for (i = 0; i < TOTAL_NODES_1D; i++)
+	{
+		for (j = 0; j < TOTAL_NODES_1D; j++)
+		{
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				for (l = 0; l < TOTAL_NODES_1D; l++)
+				{
+					cout << futureState[i][j][k][l] << " ";
+				}
+				cout << endl;
+			}
+			cout << endl;
+		}
+		cout << endl;
+	}
+	cout << endl;
+
+	/*cout << "bias matrix" << endl;
+	for (i = 0; i < TOTAL_NODES_1D; i++)
+	{
+		for (j = 0; j < TOTAL_NODES_1D; j++)
+		{
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				for (l = 0; l < TOTAL_NODES_1D; l++)
+				{
+					cout << bias[i][j][k][l] << " ";
+				}
+				cout << endl;
+			}
+			cout << endl;
+		}
+		cout << endl;
+	}
+	cout << endl;
+
+	cout << "weights matrix" << endl;
+	for (i = 0; i < TOTAL_NODES_1D; i++)
+	{
+		for (j = 0; j < TOTAL_NODES_1D; j++)
+		{
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				for (l = 0; l < TOTAL_NODES_1D; l++)
+				{
+					for (wi = 0; wi < TOTAL_WEIGHTS_1D; wi++)
+					{
+						for (wj = 0; wj < TOTAL_WEIGHTS_1D; wj++)
+						{
+							for (wk = 0; wk < TOTAL_WEIGHTS_1D; wk++)
+							{
+								for (wl = 0; wl < TOTAL_WEIGHTS_1D; wl++)
+								{
+									cout << weights[i][j][k][l][wi][wj][wk][wl] << " ";
 								}
 								cout << endl;
 							}
@@ -200,10 +212,53 @@ int main()
 	}
 	cout << endl;*/
 
-	delete[] matrix;
+	for (i = 0; i < TOTAL_NODES_1D; i++)
+	{
+		for (j = 0; j < TOTAL_NODES_1D; j++)
+		{
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				delete[] state[i][j][k];
+				delete[] bias[i][j][k];
+			}
+			delete[] state[i][j];
+			delete[] bias[i][j];
+		}
+		delete[] state[i];
+		delete[] bias[i];
+	}
+	delete[] state;
 	delete[] bias;
+
+	for (i = 0; i < TOTAL_NODES_1D; i++)
+	{
+		for (j = 0; j < TOTAL_NODES_1D; j++)
+		{
+			for (k = 0; k < TOTAL_NODES_1D; k++)
+			{
+				for (l = 0; l < TOTAL_NODES_1D; l++)
+				{
+					for (wi = 0; wi < TOTAL_WEIGHTS_1D; wi++)
+					{
+						for (wj = 0; wj < TOTAL_WEIGHTS_1D; wj++)
+						{
+							for (wk = 0; wk < TOTAL_WEIGHTS_1D; wk++)
+							{
+								delete[] weights[i][j][k][l][wi][wj][wk];
+							}
+							delete[] weights[i][j][k][l][wi][wj];
+						}
+						delete[] weights[i][j][k][l][wi];
+					}
+					delete[] weights[i][j][k][l];
+				}
+				delete[] weights[i][j][k];
+			}
+			delete[] weights[i][j];
+		}
+		delete[] weights[i];
+	}
 	delete[] weights;
-	delete[] matrix2;
 
 	return 0;
 }
